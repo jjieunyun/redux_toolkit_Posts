@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 //slice에서 가져온 action
-import { postAdded } from "./postsSlice";
+import { addNewPost } from "./postsSlice";
 import { selectAllUsers } from "../users/usersSlice";
 
 import React from 'react';
@@ -14,6 +14,7 @@ const AddPostForm = () => {
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
     const [userId, setUserId] = useState('')
+    const [addRequestStatus, setAddRequestStatus] = useState('idle');
 
     const users = useSelector(selectAllUsers)
 
@@ -21,17 +22,25 @@ const AddPostForm = () => {
     const onContentChanged = e => setContent(e.target.value)
     const onAuthorChanged = e => setUserId(e.target.value)
 
+    const canSave = [title, content, userId].every(Boolean) && addRequestStatus === 'idle';
+
     const onSavePostClicked = () => {
-        if (title && content) {
-            dispatch(
-                postAdded(title, content, userId)
-            )
-            //전송하고나면 local data는 reset해줌
-            setTitle('')
-            setContent('')
+        if(canSave) {
+            try {
+                setAddRequestStatus('pending');
+                dispatch(addNewPost({ title, body : content, userId })).unWrap()
+
+                setTitle('')
+                setContent('')
+                setUserId('')
+            }catch(error) {
+                console.error('Filed to save the pose', error)
+            }finally {
+                setAddRequestStatus('idle');
+            }
         }
-    }
-    const canSave = Boolean(title) && Boolean(content) && Boolean(userId)
+    };
+    
 
     const usersOptions = users.map(user => (
         <option key={user.id} value={user.id}>

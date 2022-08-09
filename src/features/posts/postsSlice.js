@@ -6,6 +6,7 @@ import axios from "axios";
 const POSTS_URL = 'https://jsonplaceholder.typicode.com/posts'
 
 //toISOString : local시간으로 정상 변경
+//sync request lifecycle : pending(보류;로딩), fulfiled(충족;성공), rejected(거절;실패)
 const initialState = {
     posts : [],
     status : 'idle', //'idle','loading','succeeded','failed'
@@ -22,6 +23,14 @@ export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
     }
 })
 
+export const addNewPost = createAsyncThunk('posts/addNewPost', async (initialState) => {
+    try {
+        const response = await axios.post(POSTS_URL, initialState)
+        return response.data;
+    }catch(error) {
+        return error.message;
+    }
+})
 
 //⭐state.push()의 사용 : Slice안에서는 ...state가 자동으로 들어가기때문에 그냥 push만 해주어도된다.
 //하지만 Slice이외의 다른 곳에서는 원래했던것 처럼 기존의 state를 받아오고 새로운 state를 더해주어야한다.
@@ -92,6 +101,19 @@ const postsSlice = createSlice({
             .addCase(fetchPosts.rejected, (state, action) => {
                 state.status = 'failed'
                 state.error = action.error.message
+            })
+            .addCase(addNewPost.fulfilled, (state, action) => {
+                action.payload.userId = Number(action.payload.userId);
+                action.payload.date = new Date().toString();
+                action.payload.reactions = {
+                    thumbsUp : 0,
+                    wow: 0,
+                    heart:0,
+                    rocket:0,
+                    coffee:0
+                }
+                console.log(action.payload);
+                state.posts.push(action.payload);
             })
     } 
 })
