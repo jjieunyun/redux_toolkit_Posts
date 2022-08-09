@@ -23,13 +23,9 @@ export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
     }
 })
 
-export const addNewPost = createAsyncThunk('posts/addNewPost', async (initialState) => {
-    try {
-        const response = await axios.post(POSTS_URL, initialState)
-        return response.data;
-    }catch(error) {
-        return error.message;
-    }
+export const addNewPost = createAsyncThunk('posts/addNewPost', async (initialPost) => {
+    const response = await axios.post(POSTS_URL, initialPost)
+    return response.data
 })
 
 //⭐state.push()의 사용 : Slice안에서는 ...state가 자동으로 들어가기때문에 그냥 push만 해주어도된다.
@@ -103,17 +99,17 @@ const postsSlice = createSlice({
                 state.error = action.error.message
             })
             .addCase(addNewPost.fulfilled, (state, action) => {
-                action.payload.userId = Number(action.payload.userId);
-                action.payload.date = new Date().toString();
+                action.payload.userId = Number(action.payload.userId)
+                action.payload.date = new Date().toISOString();
                 action.payload.reactions = {
-                    thumbsUp : 0,
+                    thumbsUp: 0,
                     wow: 0,
-                    heart:0,
-                    rocket:0,
-                    coffee:0
+                    heart: 0,
+                    rocket: 0,
+                    coffee: 0
                 }
-                console.log(action.payload);
-                state.posts.push(action.payload);
+                console.log(action.payload)
+                state.posts.push(action.payload)
             })
     } 
 })
